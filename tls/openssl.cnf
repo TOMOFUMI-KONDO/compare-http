@@ -18,7 +18,7 @@ commonName_max			= 64
 emailAddress			= Email Address
 emailAddress_max		= 64
 
--countryName_default = JP
+countryName_default = JP
 stateOrProvinceName_default = Miyagi
 localityName_default = Sendai
 0.organizationName_default = example.com
