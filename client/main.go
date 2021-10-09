@@ -50,7 +50,7 @@ func main() {
 		log.Fatalf("Inavlid version: %d\n", *version)
 	}
 
-	resp, err := client.Get("https://localhost:44300")
+	resp, err := client.Get("https://localhost")
 	if err != nil {
 		log.Fatalln(err)
 	}

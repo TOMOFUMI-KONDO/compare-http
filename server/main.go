@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	port := ":44300"
+	port := ":443"
 
 	http.HandleFunc("/", handler)
 
