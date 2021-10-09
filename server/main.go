@@ -32,9 +32,11 @@ func main() {
 	case 3:
 		log.Println("listening http3 on https://localhost" + port)
 		err = http3.ListenAndServeQUIC(port, crt, key, nil)
-	case 2:
-		log.Println("listening http2 on https://localhost" + port)
+	case 2, 1:
+		log.Println("listening http on https://localhost" + port)
 		err = http.ListenAndServeTLS(port, crt, key, nil)
+	default:
+		log.Fatalf("Inavlid version: %d; choole 1 to 3\n", version)
 	}
 
 	if err != nil {
