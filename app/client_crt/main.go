@@ -2,8 +2,10 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -26,8 +28,17 @@ func init() {
 }
 
 func main() {
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	// load certificate
+	cert, err := ioutil.ReadFile("tls/ca.crt")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM(cert)
+	tlsConfig := &tls.Config{RootCAs: certPool}
+	tlsConfig.BuildNameToCertificate()
 
+	// create client with certificate
 	var client *http.Client
 	switch version {
 	case 3:
