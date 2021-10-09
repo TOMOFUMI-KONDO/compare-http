@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/lucas-clemente/quic-go/http3"
+
 	"golang.org/x/net/http2"
 )
 
@@ -40,7 +42,11 @@ func main() {
 	var client *http.Client
 	switch version {
 	case 3:
-		log.Fatalln("not implemented")
+		client = &http.Client{
+			Transport: &http3.RoundTripper{
+				TLSClientConfig: tlsConfig,
+			},
+		}
 	case 2:
 		client = &http.Client{
 			Transport: &http2.Transport{
@@ -54,7 +60,7 @@ func main() {
 			},
 		}
 	default:
-		log.Fatalf("Inavlid version: %d\n", version)
+		log.Fatalf("Inavlid version: %d; choole 1 to 3\n", version)
 	}
 
 	resp, err := client.Get("https://" + host + port)
