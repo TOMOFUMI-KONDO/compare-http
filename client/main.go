@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,6 +37,7 @@ func main() {
 
 	defer resp.Body.Close()
 
+	fmt.Printf("Protocol Version:%s\n\n", resp.Proto)
 	dump, err := httputil.DumpResponse(resp, true)
 	if err != nil {
 		log.Fatalln(err)
