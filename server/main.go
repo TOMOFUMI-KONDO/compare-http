@@ -11,20 +11,24 @@ import (
 )
 
 var (
-	crt = "tls/server.crt"
-	key = "tls/server.key"
+	crt     = "tls/server.crt"
+	key     = "tls/server.key"
+	port    string
+	version int
 )
 
+func init() {
+	flag.StringVar(&port, "p", ":443", "server port")
+	flag.IntVar(&version, "v", 3, "http version")
+	flag.Parse()
+}
+
 func main() {
-	port := ":443"
 
 	http.HandleFunc("/", handler)
 
-	version := flag.Int("version", 3, "http version")
-	flag.Parse()
-
 	var err error
-	switch *version {
+	switch version {
 	case 3:
 		log.Println("listening http3 on https://localhost" + port)
 		err = http3.ListenAndServeQUIC(port, crt, key, nil)

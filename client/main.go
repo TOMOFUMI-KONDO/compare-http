@@ -13,25 +13,32 @@ import (
 	"golang.org/x/net/http2"
 )
 
+var (
+	host, port string
+	version    int
+)
+
+func init() {
+	flag.StringVar(&host, "h", "localhost", "server host")
+	flag.StringVar(&port, "p", ":443", "server port")
+	flag.IntVar(&version, "v", 3, "http version")
+	flag.Parse()
+}
+
 func main() {
 	// load certificate
 	cert, err := ioutil.ReadFile("tls/ca.crt")
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(cert)
-	//tlsConfig := &tls.Config{RootCAs: certPool}
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	tlsConfig := &tls.Config{RootCAs: certPool}
 	tlsConfig.BuildNameToCertificate()
-
-	version := flag.Int("version", 3, "http version")
-	flag.Parse()
 
 	// create client with certificate
 	var client *http.Client
-	switch *version {
+	switch version {
 	case 3:
 		log.Fatalln("not implemented")
 	case 2:
@@ -47,10 +54,10 @@ func main() {
 			},
 		}
 	default:
-		log.Fatalf("Inavlid version: %d\n", *version)
+		log.Fatalf("Inavlid version: %d\n", version)
 	}
 
-	resp, err := client.Get("https://localhost")
+	resp, err := client.Get("https://" + host + port)
 	if err != nil {
 		log.Fatalln(err)
 	}
