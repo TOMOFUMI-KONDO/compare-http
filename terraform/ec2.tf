@@ -60,13 +60,33 @@ resource "aws_security_group_rule" "allow_ssh" {
   cidr_blocks       = [var.my_global_ip]
 }
 
-resource "aws_security_group_rule" "allow_https" {
+resource "aws_security_group_rule" "allow_https_tcp" {
+  description       = "Allow internal https."
+  security_group_id = aws_security_group.ec2.id
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+}
+
+resource "aws_security_group_rule" "allow_https_udp" {
   description       = "Allow internal https."
   security_group_id = aws_security_group.ec2.id
   type              = "ingress"
   from_port         = 443
   to_port           = 443
   protocol          = "udp"
+  cidr_blocks       = [var.vpc_cidr]
+}
+
+resource "aws_security_group_rule" "allow_ping" {
+  description       = "Allow internal ping."
+  security_group_id = aws_security_group.ec2.id
+  type              = "ingress"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
   cidr_blocks       = [var.vpc_cidr]
 }
 
