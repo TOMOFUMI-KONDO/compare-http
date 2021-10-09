@@ -11,7 +11,7 @@ resource "aws_instance" "server" {
   }
 }
 
-resource "aws_instance" "cilent" {
+resource "aws_instance" "client" {
   ami                    = data.aws_ami.amazon-linux-2.id
   instance_type          = "t3.nano"
   subnet_id              = aws_subnet.public_c.id
@@ -22,6 +22,14 @@ resource "aws_instance" "cilent" {
     Name    = "${var.project}-ec2-c"
     Project = var.project
   }
+}
+
+output "server_address" {
+  value = aws_instance.server.public_ip
+}
+
+output "client_address" {
+  value = aws_instance.client.public_ip
 }
 
 resource "aws_security_group" "ec2" {
@@ -58,7 +66,7 @@ resource "aws_security_group_rule" "allow_https" {
   type              = "ingress"
   from_port         = 443
   to_port           = 443
-  protocol          = "tcp"
+  protocol          = "udp"
   cidr_blocks       = [var.vpc_cidr]
 }
 
