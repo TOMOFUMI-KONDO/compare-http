@@ -21,11 +21,11 @@ build:
 	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/server ./server
 	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/client  ./client
 
-PRIVATE_KEY=compare-http
+PRIVATE_KEY=compare-http.pem
 USER=ec2-user
 SERVER_IP_ADDRESS=
 CLIENT_IP_ADDRESS=
 .PHONY: deploy
 deploy:
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${SERVER_IP_ADDRESS}:~/app
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${CLIENT_IP_ADDRESS}:~/app
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${SERVER_IP_ADDRESS}:~/
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${CLIENT_IP_ADDRESS}:~/
