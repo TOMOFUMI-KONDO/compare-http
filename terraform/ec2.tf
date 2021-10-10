@@ -4,6 +4,7 @@ resource "aws_instance" "server" {
   subnet_id              = aws_subnet.public_a.id
   vpc_security_group_ids = [aws_security_group.ec2.id]
   key_name               = var.project
+  user_data              = file("userdata.sh")
 
   tags = {
     Name    = "${var.project}-ec2-a"
@@ -17,6 +18,7 @@ resource "aws_instance" "client" {
   subnet_id              = aws_subnet.public_c.id
   vpc_security_group_ids = [aws_security_group.ec2.id]
   key_name               = var.project
+  user_data              = file("userdata.sh")
 
   tags = {
     Name    = "${var.project}-ec2-c"
