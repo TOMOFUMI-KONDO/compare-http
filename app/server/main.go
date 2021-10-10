@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
 
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -24,7 +26,6 @@ func init() {
 }
 
 func main() {
-
 	http.HandleFunc("/", handler)
 
 	var err error
@@ -50,5 +51,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 	}
 	fmt.Println(string(dump))
-	fmt.Fprintf(w, "ok")
+
+	file, err := os.Open("server/assets/5m.txt")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(w, file)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
