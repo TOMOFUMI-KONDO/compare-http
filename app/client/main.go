@@ -26,6 +26,7 @@ func init() {
 }
 
 func main() {
+	// FIXME: This is ignoring server certificate. Don't use in production.
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 
 	var client *http.Client
