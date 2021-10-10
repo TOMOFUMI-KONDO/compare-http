@@ -21,7 +21,7 @@ build:
 	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/server ./server
 	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/client  ./client
 
-PRIVATE_KEY=id_rsa
+PRIVATE_KEY=compare-http
 USER=ec2-user
 SERVER_IP_ADDRESS=
 CLIENT_IP_ADDRESS=
