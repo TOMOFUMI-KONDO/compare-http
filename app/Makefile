@@ -27,5 +27,5 @@ SERVER_IP_ADDRESS=
 CLIENT_IP_ADDRESS=
 .PHONY: deploy
 deploy:
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${SERVER_IP_ADDRESS}:~/compare-http
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./* ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/app
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/app
