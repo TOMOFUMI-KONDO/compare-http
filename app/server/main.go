@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -21,8 +20,8 @@ var (
 	version int
 )
 
-type Body struct {
-	File string `json:"file"`
+type Query struct {
+	File []string `json:"file"`
 }
 
 func init() {
@@ -61,22 +60,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(string(dump))
 
-	// read body
-	bodyByte, err := ioutil.ReadAll(r.Body)
+	// read query
+	jsonByte, err := json.Marshal(r.URL.Query())
 	if err != nil {
-		log.Printf("[ERROR] Failed to read request body.\n%v\n", err)
+		log.Printf("[ERROR] Failed to json.Marshal request query.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	var body Body
-	if err := json.Unmarshal(bodyByte, &body); err != nil {
-		log.Printf("[ERROR] Failed to unmarshal json.\n%v\n", err)
+	var query Query
+	if err := json.Unmarshal(jsonByte, &query); err != nil {
+		log.Printf("[ERROR] Failed to json.Unmarshal request query.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
 
 	// load file
-	file, err := os.Open("server/assets/" + body.File)
+	file, err := os.Open("server/assets/" + query.File[0])
 	if err != nil {
 		log.Printf("[ERROR] Failed to open file.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
