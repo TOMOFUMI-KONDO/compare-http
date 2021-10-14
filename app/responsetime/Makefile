@@ -15,5 +15,12 @@ SERVER_IP_ADDRESS=
 CLIENT_IP_ADDRESS=
 .PHONY: deploy
 deploy:
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/app
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/app
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/app/responsetime
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/app/responsetime
+
+.PHONY: asset
+asset:
+	mkdir -p server/assets
+	for i in 1 10 100 1000 ; do\
+  		dd if=/dev/zero of=server/assets/$${i}M.txt bs=1000000 count=$$i ;\
+	done
