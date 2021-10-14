@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -18,6 +20,10 @@ var (
 	port    string
 	version int
 )
+
+type Body struct {
+	File string `json:"file"`
+}
 
 func init() {
 	flag.StringVar(&port, "p", ":443", "server port")
@@ -46,6 +52,7 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	// dump request
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		log.Printf("[ERROR] Failed to DumpRequest.\n%v\n", err)
@@ -54,7 +61,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(string(dump))
 
-	file, err := os.Open("server/assets/sample.txt")
+	// read body
+	bodyByte, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read request body.\n%v\n", err)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		return
+	}
+	var body Body
+	if err := json.Unmarshal(bodyByte, &body); err != nil {
+		log.Printf("[ERROR] Failed to unmarshal json.\n%v\n", err)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(body)
+
+	// load file
+	file, err := os.Open("server/assets/5m.txt")
 	if err != nil {
 		log.Printf("[ERROR] Failed to open file.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
@@ -62,6 +85,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	// return response
 	_, err = io.Copy(w, file)
 	if err != nil {
 		log.Printf("[ERROR] Failed to copy response.\n%v\n", err)
