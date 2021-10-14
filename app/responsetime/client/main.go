@@ -68,17 +68,18 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
-		resp.Body.Close()
-	}()
-
-	responseTime := time.Now().Sub(start)
-	fmt.Printf("response_time: %s\n\n", responseTime.String())
+	defer resp.Body.Close()
 
 	dump, err := httputil.DumpResponse(resp, false)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	log.Println(string(dump))
+
+	// read body
+	io.Copy(ioutil.Discard, resp.Body)
+
+	responseTime := time.Since(start)
+	fmt.Printf("response_time: %s\n\n", responseTime.String())
+
 }
