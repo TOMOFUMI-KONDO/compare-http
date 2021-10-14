@@ -4,11 +4,9 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"time"
 
@@ -18,15 +16,16 @@ import (
 )
 
 var (
-	host, port, file string
-	version          int
+	host, port string
+	version    int
+	files      = []string{"1M.txt", "10M.txt", "100M.txt", "1000M.txt"}
+	times      = 3 // try this times, and take average.
 )
 
 func init() {
 	flag.StringVar(&host, "h", "localhost", "server host")
 	flag.StringVar(&port, "p", ":443", "server port")
 	flag.IntVar(&version, "v", 3, "http version")
-	flag.StringVar(&file, "f", "1M.txt", "request file name")
 	flag.Parse()
 }
 
@@ -58,11 +57,34 @@ func main() {
 		log.Fatalf("Inavlid version: %d; choole 1 to 3\n", version)
 	}
 
+	for _, f := range files {
+		fmt.Printf("file: %s\n", f)
+
+		var sum int64 = 0
+
+		for i := 0; i < times+1; i++ {
+			start := time.Now()
+
+			request(client, f)
+			// to ignore overhead of initializing connection
+			if i == 0 {
+				continue
+			}
+
+			elapsed := time.Since(start).Milliseconds()
+			fmt.Printf("response time: %d[ms]\n", elapsed)
+			sum = sum + elapsed
+		}
+
+		average := sum / int64(times)
+		fmt.Printf("average: %d[ms]\n\n", average)
+	}
+}
+
+func request(client *http.Client, file string) {
 	query := url.Values{
 		"file": {file},
 	}
-
-	start := time.Now()
 
 	resp, err := client.Get("https://" + host + port + "?" + query.Encode())
 	if err != nil {
@@ -70,16 +92,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	dump, err := httputil.DumpResponse(resp, false)
-	if err != nil {
+	if _, err := ioutil.ReadAll(resp.Body); err != nil {
 		log.Fatalln(err)
 	}
-	log.Println(string(dump))
-
-	// read body
-	io.Copy(ioutil.Discard, resp.Body)
-
-	responseTime := time.Since(start)
-	fmt.Printf("response_time: %s\n\n", responseTime.String())
-
 }
