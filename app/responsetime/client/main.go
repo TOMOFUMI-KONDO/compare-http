@@ -4,9 +4,13 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
+	"time"
 
 	"github.com/lucas-clemente/quic-go/http3"
 
@@ -14,14 +18,15 @@ import (
 )
 
 var (
-	host, port string
-	version    int
+	host, port, file string
+	version          int
 )
 
 func init() {
 	flag.StringVar(&host, "h", "localhost", "server host")
 	flag.StringVar(&port, "p", ":443", "server port")
 	flag.IntVar(&version, "v", 3, "http version")
+	flag.StringVar(&file, "f", "1M.txt", "request file name")
 	flag.Parse()
 }
 
@@ -53,18 +58,27 @@ func main() {
 		log.Fatalf("Inavlid version: %d; choole 1 to 3\n", version)
 	}
 
-	resp, err := client.Get("https://" + host + port)
+	query := url.Values{
+		"file": {file},
+	}
+
+	start := time.Now()
+
+	resp, err := client.Get("https://" + host + port + "?" + query.Encode())
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer func() {
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
-	defer resp.Body.Close()
+	responseTime := time.Now().Sub(start)
+	fmt.Printf("response_time: %s\n\n", responseTime.String())
 
-	fmt.Printf("Protocol Version:%s\n\n", resp.Proto)
-	dump, err := httputil.DumpResponse(resp, true)
+	dump, err := httputil.DumpResponse(resp, false)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	log.Println(string(dump))
 }

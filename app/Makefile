@@ -1,6 +1,3 @@
-.PHONY: all
-all: build
-
 .PHONY: certificate
 certificate:
 	# create CA certificate
@@ -12,20 +9,3 @@ certificate:
 	openssl genrsa -out tls/server.key 2048
 	openssl req -new -nodes -sha256 -key tls/server.key -out tls/server.csr -config tls/openssl.cnf
 	openssl x509 -req -days 365 -in tls/server.csr -sha256 -out tls/server.crt -CA tls/ca.crt -CAkey tls/ca.key -CAcreateserial -extfile tls/openssl.cnf -extensions Server
-
-GOOS=linux
-GOARCH=amd64
-
-.PHONY: build
-build:
-	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/server ./server
-	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/client  ./client
-
-PRIVATE_KEY=compare-http.pem
-USER=ec2-user
-SERVER_IP_ADDRESS=
-CLIENT_IP_ADDRESS=
-.PHONY: deploy
-deploy:
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/app
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/app

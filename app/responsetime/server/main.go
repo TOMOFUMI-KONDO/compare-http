@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	crt     = "tls/server.crt"
-	key     = "tls/server.key"
+	crt     = "../tls/server.crt"
+	key     = "../tls/server.key"
 	port    string
 	version int
 )
@@ -90,4 +90,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Printf("Finished to response file \"%s\"\n", file.Name())
 }
