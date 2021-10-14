@@ -74,10 +74,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(body)
 
 	// load file
-	file, err := os.Open("server/assets/5m.txt")
+	file, err := os.Open("server/assets/" + body.File)
 	if err != nil {
 		log.Printf("[ERROR] Failed to open file.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
