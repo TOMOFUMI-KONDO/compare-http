@@ -77,7 +77,8 @@ resource "aws_security_group_rule" "allow_https_tcp" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  cidr_blocks       = [var.vpc_cidr]
+  cidr_blocks       = [var.default_gateway_cidr.ipv4]
+  ipv6_cidr_blocks  = [var.default_gateway_cidr.ipv6]
 }
 
 resource "aws_security_group_rule" "allow_https_udp" {
@@ -87,7 +88,8 @@ resource "aws_security_group_rule" "allow_https_udp" {
   from_port         = 443
   to_port           = 443
   protocol          = "udp"
-  cidr_blocks       = [var.vpc_cidr]
+  cidr_blocks       = [var.default_gateway_cidr.ipv4]
+  ipv6_cidr_blocks  = [var.default_gateway_cidr.ipv6]
 }
 
 resource "aws_security_group_rule" "allow_ping" {
@@ -97,7 +99,8 @@ resource "aws_security_group_rule" "allow_ping" {
   from_port         = 8
   to_port           = 0
   protocol          = "icmp"
-  cidr_blocks       = [var.vpc_cidr]
+  cidr_blocks       = [var.default_gateway_cidr.ipv4]
+  ipv6_cidr_blocks  = [var.default_gateway_cidr.ipv6]
 }
 
 data "aws_ami" "amazon-linux-2" {
