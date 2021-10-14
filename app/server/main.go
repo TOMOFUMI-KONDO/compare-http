@@ -48,18 +48,24 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
+		log.Printf("[ERROR] Failed to DumpRequest.\n%v\n", err)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		return
 	}
 	fmt.Println(string(dump))
 
-	file, err := os.Open("server/assets/5m.txt")
+	file, err := os.Open("server/assets/sample.txt")
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("[ERROR] Failed to open file.\n%v\n", err)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		return
 	}
 	defer file.Close()
 
 	_, err = io.Copy(w, file)
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("[ERROR] Failed to copy response.\n%v\n", err)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+		return
 	}
 }
