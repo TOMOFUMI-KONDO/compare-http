@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 	"time"
-
-	"github.com/TOMOFUMI-KONDO/compare-http/sendlatency/httpversion"
 
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -20,37 +19,29 @@ var (
 	key = "../tls/server.key"
 
 	port    string
-	version httpversion.Version
+	version int
+	debug   bool
 
-	debug bool
+	latencies []int64
 )
 
 func init() {
 	flag.StringVar(&port, "p", ":443", "server port")
-	v := *flag.Int("v", 1, "http version")
-	switch v {
-	case 1:
-		version = httpversion.Ver1
-	case 2:
-		version = httpversion.Ver2
-	case 3:
-		version = httpversion.Ver3
-	default:
-		version = httpversion.Ver1
-	}
+	flag.IntVar(&version, "v", 1, "http version")
 	flag.BoolVar(&debug, "d", false, "enable debug")
 	flag.Parse()
 }
 
 func main() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/record", handleRecord)
+	http.HandleFunc("/stat", handleStat)
 
 	var err error
 	switch version {
-	case httpversion.Ver1, httpversion.Ver2:
+	case 1, 2:
 		log.Println("listening http on https://localhost" + port)
 		err = http.ListenAndServeTLS(port, crt, key, nil)
-	case httpversion.Ver3:
+	case 3:
 		log.Println("listening http3 on https://localhost" + port)
 		err = http3.ListenAndServeQUIC(port, crt, key, nil)
 	default:
@@ -62,14 +53,9 @@ func main() {
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handleRecord(w http.ResponseWriter, r *http.Request) {
 	if debug {
-		dump, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Println(string(dump))
+		dumpRequest(r)
 	}
 
 	//read and discard load file
@@ -90,6 +76,32 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	elapsed := time.Now().UnixNano() - sendUnixTime
-	fmt.Printf("send latency is %d[ms]\n", elapsed/1000)
+	latency := time.Now().UnixNano() - sendUnixTime
+	latencyMs := latency / int64(math.Pow(10, 6))
+
+	latencies = append(latencies, latencyMs)
+
+	fmt.Printf("send latency is %d[ms]\n", latencyMs)
+}
+
+func handleStat(_ http.ResponseWriter, r *http.Request) {
+	if debug {
+		dumpRequest(r)
+	}
+
+	var sum int64 = 0
+	for _, v := range latencies {
+		sum = sum + v
+	}
+	average := sum / int64(len(latencies))
+
+	fmt.Printf("send latency average: %d[ms]\n\n", average)
+
+	// reset stat
+	latencies = nil
+}
+
+func dumpRequest(r *http.Request) {
+	dump, _ := httputil.DumpRequest(r, true)
+	fmt.Println(string(dump))
 }

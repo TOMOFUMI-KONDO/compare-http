@@ -14,35 +14,25 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TOMOFUMI-KONDO/compare-http/sendlatency/httpversion"
-
 	"github.com/lucas-clemente/quic-go/http3"
 	"golang.org/x/net/http2"
 )
 
 var (
 	host, port string
-	version    httpversion.Version
+	version    int
 	debug      bool
-
-	assetsBasePath = "client/assets/"
+	times      int // try this times, and take
+	file       string
 )
 
 func init() {
 	flag.StringVar(&host, "h", "localhost", "server hostname")
 	flag.StringVar(&port, "p", ":443", "server port")
-	v := *flag.Int("v", 1, "http version")
-	switch v {
-	case 1:
-		version = httpversion.Ver1
-	case 2:
-		version = httpversion.Ver2
-	case 3:
-		version = httpversion.Ver3
-	default:
-		version = httpversion.Ver1
-	}
+	flag.IntVar(&version, "v", 1, "http version")
 	flag.BoolVar(&debug, "d", false, "enable debug")
+	flag.IntVar(&times, "t", 10, "try times. take average of these")
+	flag.StringVar(&file, "f", "1K.txt", "sent file")
 	flag.Parse()
 }
 
@@ -52,19 +42,19 @@ func main() {
 
 	var client *http.Client
 	switch version {
-	case httpversion.Ver3:
+	case 3:
 		client = &http.Client{
 			Transport: &http3.RoundTripper{
 				TLSClientConfig: tlsConfig,
 			},
 		}
-	case httpversion.Ver2:
+	case 2:
 		client = &http.Client{
 			Transport: &http2.Transport{
 				TLSClientConfig: tlsConfig,
 			},
 		}
-	case httpversion.Ver1:
+	case 1:
 		client = &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: tlsConfig,
@@ -74,11 +64,36 @@ func main() {
 		log.Fatalf("Inavlid version: %d; choole 1 to 3\n", version)
 	}
 
+	for i := 0; i < times; i++ {
+		send(client, "client/assets/"+file)
+	}
+
+	resp, err := client.Get("https://" + host + port + "/stat")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if debug {
+		dump, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(string(dump))
+	} else {
+		// read and discard response body
+		if _, err := io.ReadAll(resp.Body); err != nil {
+			log.Fatalln(err)
+		}
+		defer resp.Body.Close()
+	}
+}
+
+func send(client *http.Client, filepath string) {
 	var buffer bytes.Buffer
 	writer := multipart.NewWriter(&buffer)
 
 	// set load file
-	file, err := os.Open(assetsBasePath + "1M.txt")
+	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -103,7 +118,7 @@ func main() {
 	}
 
 	// send request
-	resp, err := client.Post("https://"+host+port, writer.FormDataContentType(), &buffer)
+	resp, err := client.Post("https://"+host+port+"/record", writer.FormDataContentType(), &buffer)
 	if err != nil {
 		log.Fatalln(err)
 	}

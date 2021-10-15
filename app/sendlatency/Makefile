@@ -21,6 +21,8 @@ deploy:
 .PHONY: asset
 asset:
 	mkdir -p client/assets
-	for i in 1 10 100 1000 ; do\
-  		dd if=/dev/zero of=client/assets/$${i}M.txt bs=1000 count=$$i ;\
+	# KB and MB assets
+	for i in `seq 0 3` ; do\
+  		dd if=/dev/zero of=client/assets/$$((10**i))K.txt bs=$$((10**3)) count=$$((10**i)) ;\
+  		dd if=/dev/zero of=client/assets/$$((10**i))M.txt bs=$$((10**6)) count=$$((10**i)) ;\
 	done
