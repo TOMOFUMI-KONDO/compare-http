@@ -1,2 +1,5 @@
-# Editor config
+# editor config
 .idea/
+
+# exec files
+**/bin/
