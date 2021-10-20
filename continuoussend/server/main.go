@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TOMOFUMI-KONDO/compare-http/continuoussend/chart"
+
 	"github.com/lucas-clemente/quic-go/http3"
 )
 
@@ -32,6 +34,7 @@ func init() {
 
 func main() {
 	http.HandleFunc("/", handle)
+	http.HandleFunc("/fin", handleFin)
 
 	var err error
 
@@ -54,9 +57,7 @@ func main() {
 func handle(w http.ResponseWriter, r *http.Request) {
 	if debug {
 		if err := dumpRequest(r); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to dump request; %s\n", err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			fmt.Fprintf(os.Stderr, "failed to dump request; %s\n", err)
 		}
 	}
 
@@ -69,16 +70,28 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	latencyNanoSec := time.Now().UnixNano() - sendAt
-	latencyMilSec := latencyNanoSec / int64(math.Pow(10, 6))
+	latencyMilSec := int(latencyNanoSec / int64(math.Pow(10, 6)))
 
-	fmt.Printf("send latency is %d[ms]\n", latencyMilSec)
+	chart.Record(latencyMilSec)
+}
+
+func handleFin(w http.ResponseWriter, r *http.Request) {
+	if debug {
+		if err := dumpRequest(r); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to dump request; %s\n", err)
+		}
+	}
+
+	if err := chart.Render(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to render chart; %s\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func dumpRequest(r *http.Request) error {
 	dump, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		return err
-
 	}
 
 	fmt.Println("\n===============request===============")

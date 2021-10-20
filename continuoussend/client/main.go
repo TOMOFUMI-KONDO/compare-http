@@ -42,6 +42,8 @@ func main() {
 	ticker := time.NewTicker(time.Duration(tick) * time.Millisecond)
 	done := make(chan bool)
 
+	fmt.Printf("\n=====send start=====\n")
+
 	go func() {
 		for {
 			select {
@@ -59,7 +61,11 @@ func main() {
 	ticker.Stop()
 	done <- true
 
-	fmt.Printf("\n=====finished sending=====\n")
+	if err = fin(client); err != nil {
+		log.Fatalf("failed to send fin; %s\n", err)
+	}
+
+	fmt.Printf("\n=====send finish=====\n")
 }
 
 func makeClient(version int) (*http.Client, error) {
@@ -99,6 +105,9 @@ func send(client *http.Client) error {
 		return err
 	}
 
+	byte := make([]byte, 20000000)
+	writer.WriteField("load", string(byte))
+
 	if err := writer.Close(); err != nil {
 		return err
 	}
@@ -115,11 +124,28 @@ func send(client *http.Client) error {
 	defer resp.Body.Close()
 
 	if debug {
-		dump, err := httputil.DumpResponse(resp, false)
-		if err != nil {
-			return err
-		}
+		dump, _ := httputil.DumpResponse(resp, false)
 		fmt.Printf("%s\n%s\n", dump, body)
+	}
+
+	return nil
+}
+
+func fin(client *http.Client) error {
+	resp, err := client.Post("https://"+host+port+"/fin", "application/x-www-url-encoded", nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if debug {
+		dump, _ := httputil.DumpResponse(resp, false)
+		fmt.Println(string(dump))
 	}
 
 	return nil
