@@ -33,10 +33,9 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", handle)
+	http.HandleFunc("/record", handle)
 	http.HandleFunc("/fin", handleFin)
-	fs := http.FileServer(http.Dir("out"))
-	http.Handle("/charts/", http.StripPrefix("/charts/", fs))
+	http.Handle("/charts/", http.StripPrefix("/charts/", http.FileServer(http.Dir("out"))))
 
 	var err error
 

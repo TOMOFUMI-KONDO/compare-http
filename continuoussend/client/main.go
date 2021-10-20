@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	host, port            string
+	host, port, endpoint  string
 	version, tick, period int
 	debug                 bool
 )
@@ -31,6 +31,8 @@ func init() {
 	flag.IntVar(&period, "period", 60, "continue to send units for this period [s]")
 	flag.BoolVar(&debug, "debug", false, "enable debug")
 	flag.Parse()
+
+	endpoint = "https://" + host + port
 }
 
 func main() {
@@ -109,7 +111,7 @@ func send(client *http.Client) error {
 		return err
 	}
 
-	resp, err := client.Post("https://"+host+port, writer.FormDataContentType(), &buffer)
+	resp, err := client.Post(endpoint+"/record", writer.FormDataContentType(), &buffer)
 	if err != nil {
 		return err
 	}
@@ -129,7 +131,7 @@ func send(client *http.Client) error {
 }
 
 func fin(client *http.Client) error {
-	resp, err := client.Post("https://"+host+port+"/fin", "application/x-www-url-encoded", nil)
+	resp, err := client.Post(endpoint+"/fin", "application/x-www-url-encoded", nil)
 	if err != nil {
 		return err
 	}
