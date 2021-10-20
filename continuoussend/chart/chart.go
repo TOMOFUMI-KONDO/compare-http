@@ -16,7 +16,7 @@ var (
 	latencies = make([]int, 0)
 
 	classMax int
-	bar      = charts.NewBar()
+	line     = charts.NewLine()
 )
 
 func init() {
@@ -36,16 +36,19 @@ func Render() error {
 	}
 	defer f.Close()
 
-	bar.SetGlobalOptions(
+	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{Title: "Latency Histogram"}),
 		charts.WithXAxisOpts(opts.XAxis{Name: "latency [ms]"}),
 		charts.WithYAxisOpts(opts.YAxis{Name: "frequency"}),
 	)
 
-	bar.SetXAxis(makeRange(classMax)).
-		AddSeries("HTTP/1.1", makeBars(latencies, classMax))
+	line.SetXAxis(makeRange(classMax)).
+		AddSeries("HTTP/1.1", makeLines(latencies, classMax)).
+		SetSeriesOptions(
+			charts.WithAreaStyleOpts(opts.AreaStyle{Opacity: 0.2}),
+		)
 
-	if err = bar.Render(f); err != nil {
+	if err = line.Render(f); err != nil {
 		return err
 	}
 
@@ -75,7 +78,7 @@ func makeFile(dir, file string) (*os.File, error) {
 	return f, nil
 }
 
-func makeBars(data []int, max int) []opts.BarData {
+func makeLines(data []int, max int) []opts.LineData {
 	items := make([]int, max)
 
 	for _, d := range data {
@@ -83,9 +86,9 @@ func makeBars(data []int, max int) []opts.BarData {
 		items[d] = prev + 1
 	}
 
-	bars := make([]opts.BarData, len(items))
+	bars := make([]opts.LineData, len(items))
 	for i := 0; i < len(items); i++ {
-		bars[i] = opts.BarData{Value: items[i]}
+		bars[i] = opts.LineData{Value: items[i]}
 	}
 
 	return bars
