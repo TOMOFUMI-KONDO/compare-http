@@ -16,7 +16,7 @@ var (
 	latencies = make([]int, 0)
 
 	classWidth = 10
-	classRange = 10
+	classRange = 30
 	bar        = charts.NewBar()
 )
 
@@ -53,7 +53,7 @@ func Render() error {
 func makeRange(n int) []int {
 	r := make([]int, n)
 	for i := 0; i < n; i++ {
-		r[i] = (i + 1) * 10
+		r[i] = (i + 1) * classWidth
 	}
 	return r
 }
