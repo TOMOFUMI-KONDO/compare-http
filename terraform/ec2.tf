@@ -12,19 +12,19 @@ resource "aws_instance" "server" {
   }
 }
 
-resource "aws_instance" "client" {
-  ami                    = data.aws_ami.amazon-linux-2.id
-  instance_type          = "t3.nano"
-  subnet_id              = aws_subnet.public_c.id
-  vpc_security_group_ids = [aws_security_group.ec2.id]
-  key_name               = var.project
-  user_data              = file("userdata.sh")
-
-  tags = {
-    Name    = "${var.project}-ec2-c"
-    Project = var.project
-  }
-}
+#resource "aws_instance" "client" {
+#  ami                    = data.aws_ami.amazon-linux-2.id
+#  instance_type          = "t3.nano"
+#  subnet_id              = aws_subnet.public_c.id
+#  vpc_security_group_ids = [aws_security_group.ec2.id]
+#  key_name               = var.project
+#  user_data              = file("userdata.sh")
+#
+#  tags = {
+#    Name    = "${var.project}-ec2-c"
+#    Project = var.project
+#  }
+#}
 
 output "server_public_ip" {
   value = aws_instance.server.public_ip
@@ -34,13 +34,13 @@ output "server_private_ip" {
   value = aws_instance.server.private_ip
 }
 
-output "client_public_ip" {
-  value = aws_instance.client.public_ip
-}
-
-output "client_private_ip" {
-  value = aws_instance.client.private_ip
-}
+#output "client_public_ip" {
+#  value = aws_instance.client.public_ip
+#}
+#
+#output "client_private_ip" {
+#  value = aws_instance.client.private_ip
+#}
 
 resource "aws_security_group" "ec2" {
   description = "For ec2 instance."
