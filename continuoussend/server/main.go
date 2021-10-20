@@ -83,7 +83,8 @@ func handleFin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := chart.Render(); err != nil {
+	p := "HTTP-" + strconv.Itoa(version)
+	if err := chart.Render(p); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to render chart; %s\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

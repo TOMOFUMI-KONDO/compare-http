@@ -2,6 +2,7 @@ package chart
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"gonum.org/v1/plot/vg"
@@ -20,7 +21,7 @@ func Record(latency int) {
 	latencies = append(latencies, latency)
 }
 
-func Render() error {
+func Render(protocol string) error {
 	p := plot.New()
 	p.Title.Text = "Latency Histogram"
 
@@ -35,8 +36,12 @@ func Render() error {
 	}
 	p.Add(h)
 
+	dir := outDir + "/" + protocol
+	if err = os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
 	filename := time.Now().Format("2006-01-02_15:04:05") + ".png"
-	file := outDir + "/" + filename
+	file := dir + "/" + filename
 
 	if err = p.Save(4*vg.Inch, 4*vg.Inch, file); err != nil {
 		return err
