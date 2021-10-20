@@ -105,9 +105,6 @@ func send(client *http.Client) error {
 		return err
 	}
 
-	byte := make([]byte, 20000000)
-	writer.WriteField("load", string(byte))
-
 	if err := writer.Close(); err != nil {
 		return err
 	}
