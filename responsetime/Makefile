@@ -15,8 +15,8 @@ SERVER_IP_ADDRESS=
 CLIENT_IP_ADDRESS=
 .PHONY: deploy
 deploy:
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/app/responsetime
-	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/app/responsetime
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${SERVER_IP_ADDRESS}:~/compare-http/responsetime
+	scp -ri ~/.ssh/${PRIVATE_KEY} ./bin ${USER}@${CLIENT_IP_ADDRESS}:~/compare-http/responsetime
 
 .PHONY: asset
 asset:
