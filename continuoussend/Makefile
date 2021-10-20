@@ -9,6 +9,11 @@ build:
 	GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/server ./server
 	go build -o bin/client ./client
 
+.PHONY: clean
+clean:
+	rm -f bin/*
+	rm -f out/*
+
 PRIVATE_KEY=compare-http.pem
 USER=ec2-user
 SERVER_IP_ADDRESS=
