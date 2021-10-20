@@ -1,8 +1,8 @@
 package chart
 
 import (
+	"flag"
 	"fmt"
-	"math"
 	"os"
 	"time"
 
@@ -15,18 +15,22 @@ var (
 
 	latencies = make([]int, 0)
 
-	classWidth = 10
-	classRange = 30
-	bar        = charts.NewBar()
+	classMax int
+	bar      = charts.NewBar()
 )
+
+func init() {
+	flag.IntVar(&classMax, "max", 100, "max of latency class")
+	flag.Parse()
+}
 
 func Record(latency int) {
 	latencies = append(latencies, latency)
 }
 
 func Render() error {
-	now := time.Now().Format("2006-01-02_15:04:05")
-	f, err := makeFile(now + ".html")
+	filename := time.Now().Format("2006-01-02_15:04:05") + ".html"
+	f, err := makeFile(outDir, filename)
 	if err != nil {
 		return err
 	}
@@ -38,8 +42,8 @@ func Render() error {
 		charts.WithYAxisOpts(opts.YAxis{Name: "frequency"}),
 	)
 
-	bar.SetXAxis(makeRange(classRange)).
-		AddSeries("HTTP/1.1", makeBars(latencies))
+	bar.SetXAxis(makeRange(classMax)).
+		AddSeries("HTTP/1.1", makeBars(latencies, classMax))
 
 	if err = bar.Render(f); err != nil {
 		return err
@@ -50,20 +54,20 @@ func Render() error {
 	return nil
 }
 
-func makeRange(n int) []int {
-	r := make([]int, n)
-	for i := 0; i < n; i++ {
-		r[i] = (i + 1) * classWidth
+func makeRange(max int) []int {
+	r := make([]int, max)
+	for i := 1; i < max+1; i++ {
+		r[i-1] = i
 	}
 	return r
 }
 
-func makeFile(file string) (*os.File, error) {
-	if err := os.MkdirAll(outDir, os.FileMode(0755)); err != nil {
+func makeFile(dir, file string) (*os.File, error) {
+	if err := os.MkdirAll(dir, os.FileMode(0755)); err != nil {
 		return nil, err
 	}
 
-	f, err := os.Create(outDir + "/" + file)
+	f, err := os.Create(dir + "/" + file)
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +75,12 @@ func makeFile(file string) (*os.File, error) {
 	return f, nil
 }
 
-func makeBars(data []int) []opts.BarData {
-	items := make([]int, classRange)
+func makeBars(data []int, max int) []opts.BarData {
+	items := make([]int, max)
 
-	for i := 0; i < len(data); i++ {
-		// round nearest 10th
-		class := int(math.Round(float64(data[i]/10)) * 10)
-
-		prev := items[class/classWidth]
-		items[class/classWidth] = prev + 1
+	for _, d := range data {
+		prev := items[d]
+		items[d] = prev + 1
 	}
 
 	bars := make([]opts.BarData, len(items))
